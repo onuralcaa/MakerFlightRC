@@ -42,6 +42,8 @@ namespace MakerFlightRC.Runtime.Aircraft
                 transform.position = Vector3.zero;
                 rb.useGravity = false;
                 rb.isKinematic = true;
+                rb.drag = 1.5f;
+                rb.angularDrag = 2.0f;
             }
 
             // Initialize safe default environment state
@@ -154,7 +156,7 @@ namespace MakerFlightRC.Runtime.Aircraft
             var thrust = Mathf.Max(0f, configState.thrust) * Mathf.Clamp01(input.throttle);
             if (!float.IsNaN(thrust) && !float.IsInfinity(thrust) && thrust > 0f && thrust < 10000f)
             {
-                rb.AddForce(transform.forward * thrust);
+                rb.AddForce(transform.forward * thrust * Time.fixedDeltaTime, ForceMode.Force);
             }
 
             if (speed > Mathf.Epsilon)

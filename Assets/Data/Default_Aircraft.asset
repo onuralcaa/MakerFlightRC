@@ -15,10 +15,10 @@ MonoBehaviour:
   aircraftId: default_aircraft
   displayName: Default Aircraft
   prefab: {fileID: 0}
-  baseMass: 1.2
+  baseMass: 2.0
   baseWingArea: 0.8
   baseWingSpan: 1.4
-  baseThrust: 25
+  baseThrust: 5
   baseCenterOfMass: {x: 0, y: 0, z: 0}
   liftCoefficient: 1.1
   dragCoefficient: 0.05
