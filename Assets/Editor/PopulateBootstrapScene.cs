@@ -63,30 +63,26 @@ namespace MakerFlightRC.EditorTools
             terrain.name = "Pist_Terrain";
             terrain.transform.position = Vector3.zero;
             terrain.transform.rotation = Quaternion.identity;
-            terrain.transform.localScale = Vector3.one;
+            terrain.transform.localScale = new Vector3(10f, 1f, 10f);
 
-            var collider = terrain.GetComponent<Collider>();
-            if (collider != null)
+            var meshCollider = terrain.GetComponent<MeshCollider>();
+            if (meshCollider == null)
             {
-                Object.DestroyImmediate(collider);
+                meshCollider = terrain.AddComponent<MeshCollider>();
             }
-
-            var meshCollider = terrain.AddComponent<MeshCollider>();
             meshCollider.convex = false;
         }
 
         private static GameObject CreateAircraft(AircraftData aircraft, InputChannelSO inputChannel, FlightDataChannelSO flightDataChannel)
         {
-            var aircraftGo = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            var aircraftGo = new GameObject("AircraftController");
             aircraftGo.name = "AircraftController";
             aircraftGo.transform.position = new Vector3(0f, 1f, 0f);
             aircraftGo.transform.rotation = Quaternion.identity;
 
-            var collider = aircraftGo.GetComponent<Collider>();
-            if (collider != null)
-            {
-                Object.DestroyImmediate(collider);
-            }
+            var boxCollider = aircraftGo.AddComponent<BoxCollider>();
+            boxCollider.center = Vector3.zero;
+            boxCollider.size = new Vector3(1f, 1f, 2f);
 
             var rb = aircraftGo.GetComponent<Rigidbody>();
             if (rb == null)
@@ -103,6 +99,12 @@ namespace MakerFlightRC.EditorTools
             SetFieldValue(controller, "defaultAircraft", aircraft);
             SetFieldValue(controller, "inputChannel", inputChannel);
             SetFieldValue(controller, "flightDataChannel", flightDataChannel);
+
+            var modelRoot = new GameObject("ModelRoot");
+            modelRoot.transform.SetParent(aircraftGo.transform, false);
+            modelRoot.transform.localPosition = Vector3.zero;
+            modelRoot.transform.localRotation = Quaternion.identity;
+            modelRoot.transform.localScale = Vector3.one;
 
             return aircraftGo;
         }

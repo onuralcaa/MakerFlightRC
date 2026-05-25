@@ -27,6 +27,8 @@ namespace MakerFlightRC.Runtime.Aircraft
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
+                private bool hasReceivedInput;
+                private const float InputEpsilon = 0.01f;
         }
 
         private void Start()
@@ -35,6 +37,8 @@ namespace MakerFlightRC.Runtime.Aircraft
             {
                 rb.velocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
+                        rb.useGravity = false;
+                        rb.isKinematic = true;
                 transform.position = Vector3.zero;
             }
 
@@ -57,6 +61,11 @@ namespace MakerFlightRC.Runtime.Aircraft
                 aircraftSelectionChannel.OnRaised += HandleAircraftSelected;
             }
             if (aircraftConfigChannel != null)
+                    EnablePhysicsIfNeeded(input);
+                    if (!hasReceivedInput)
+                    {
+                        return;
+                    }
             {
                 aircraftConfigChannel.OnRaised += HandleConfigUpdated;
             }
@@ -146,8 +155,32 @@ namespace MakerFlightRC.Runtime.Aircraft
             }
 
             if (speed > Mathf.Epsilon)
+                    EnablePhysicsIfNeeded(state);
             {
                 // Clamp parameters to reasonable ranges to prevent overflow
+                private void EnablePhysicsIfNeeded(InputState input)
+                {
+                    if (hasReceivedInput || rb == null)
+                    {
+                        return;
+                    }
+
+                    var hasInput = Mathf.Abs(input.throttle) > InputEpsilon
+                                   || Mathf.Abs(input.roll) > InputEpsilon
+                                   || Mathf.Abs(input.pitch) > InputEpsilon
+                                   || Mathf.Abs(input.yaw) > InputEpsilon;
+
+                    if (!hasInput)
+                    {
+                        return;
+                    }
+
+                    hasReceivedInput = true;
+                    rb.isKinematic = false;
+                    rb.useGravity = true;
+                    rb.velocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                }
                 var airDensity = Mathf.Clamp(environmentState.airDensity, 0.1f, 10f);
                 var wingArea = Mathf.Clamp(configState.wingArea, 0.1f, 1000f);
                 var liftCoeff = Mathf.Clamp(aircraftData.liftCoefficient, -100f, 100f);

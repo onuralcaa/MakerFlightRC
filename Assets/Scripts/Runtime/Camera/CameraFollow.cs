@@ -11,7 +11,15 @@ namespace MakerFlightRC.Runtime.CameraRig
         {
             if (target != null)
             {
-                transform.position = target.position + RearOffset;
+                var targetPos = target.position;
+                if (float.IsNaN(targetPos.x) || float.IsNaN(targetPos.y) || float.IsNaN(targetPos.z) ||
+                    float.IsInfinity(targetPos.x) || float.IsInfinity(targetPos.y) || float.IsInfinity(targetPos.z))
+                {
+                    targetPos = Vector3.zero;
+                }
+
+                targetPos.y = 0f;
+                transform.position = targetPos + RearOffset;
             }
             else
             {
@@ -30,6 +38,8 @@ namespace MakerFlightRC.Runtime.CameraRig
             {
                 targetPos = Vector3.zero;
             }
+
+            targetPos.y = 0f;
 
             // Calculate camera position from origin-based offset
             Vector3 cameraPos = targetPos + RearOffset;
