@@ -1,7 +1,7 @@
 {
   "name": "MakerFlightRC.Runtime",
   "rootNamespace": "MakerFlightRC",
-  "references": [],
+  "references": ["Unity.InputSystem"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

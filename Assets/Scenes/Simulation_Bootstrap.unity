@@ -391,7 +391,6 @@ GameObject:
   - component: {fileID: 5500}
   - component: {fileID: 5501}
   - component: {fileID: 5502}
-  - component: {fileID: 5503}
   m_Layer: 0
   m_Name: AircraftController
   m_TagString: Untagged
@@ -472,16 +471,4 @@ MonoBehaviour:
   flightDataChannel: {fileID: 11400000, guid: 43f83f6800a84667a6bf2e1a47b9a2c1, type: 2}
   inputProvider: {fileID: 0}
   defaultAircraft: {fileID: 11400000, guid: 6e4a0b0b0b5f4f7f9c1c7e8c2a1b3d4e, type: 2}
---- !u!114 &5503
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1500}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2e0a1f5b6b2e4dd3a0b64f0a42b5b21b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  inputChannel: {fileID: 11400000, guid: ebd0107e9df746c08bd89023b5a9f6c3, type: 2}
+
