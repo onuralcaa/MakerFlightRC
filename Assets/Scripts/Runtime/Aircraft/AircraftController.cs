@@ -37,6 +37,17 @@ namespace MakerFlightRC.Runtime.Aircraft
                 rb.angularVelocity = Vector3.zero;
                 transform.position = Vector3.zero;
             }
+
+            // Initialize safe default environment state
+            if (environmentState.airDensity <= 0f)
+            {
+                environmentState = new EnvironmentState
+                {
+                    wind = Vector3.zero,
+                    turbulence = Vector3.zero,
+                    airDensity = 1.225f // Sea level standard air density
+                };
+            }
         }
 
         private void OnEnable()
@@ -91,6 +102,12 @@ namespace MakerFlightRC.Runtime.Aircraft
                 return;
             }
 
+            // Ensure environment state is valid
+            if (environmentState.airDensity <= 0f)
+            {
+                environmentState.airDensity = 1.225f;
+            }
+
             var input = inputProvider != null ? inputProvider.CurrentState : channelInputState;
             var airVelocity = rb.velocity - environmentState.AirVelocity;
             var speed = airVelocity.magnitude;
@@ -101,11 +118,22 @@ namespace MakerFlightRC.Runtime.Aircraft
             if (speed > Mathf.Epsilon)
             {
                 var airDensity = environmentState.airDensity;
-                var lift = 0.5f * airDensity * speed * speed * configState.wingArea * aircraftData.liftCoefficient;
-                var drag = 0.5f * airDensity * speed * speed * configState.wingArea * aircraftData.dragCoefficient;
+                
+                // Apply aerodynamic forces safely
+                if (airDensity > 0f)
+                {
+                    var lift = 0.5f * airDensity * speed * speed * configState.wingArea * aircraftData.liftCoefficient;
+                    var drag = 0.5f * airDensity * speed * speed * configState.wingArea * aircraftData.dragCoefficient;
 
-                rb.AddForce(transform.up * lift);
-                rb.AddForce(-airVelocity.normalized * drag);
+                    rb.AddForce(transform.up * lift);
+                    
+                    // Safely normalize airVelocity to avoid NaN when dividing by zero
+                    Vector3 airVelocityNormalized = airVelocity.normalized;
+                    if (!float.IsNaN(airVelocityNormalized.x) && !float.IsNaN(airVelocityNormalized.y) && !float.IsNaN(airVelocityNormalized.z))
+                    {
+                        rb.AddForce(-airVelocityNormalized * drag);
+                    }
+                }
             }
 
             var torque = new Vector3(
@@ -140,6 +168,11 @@ namespace MakerFlightRC.Runtime.Aircraft
 
         private void HandleEnvironmentUpdated(EnvironmentState state)
         {
+            // Validate incoming environment state
+            if (state.airDensity <= 0f)
+            {
+                state.airDensity = 1.225f; // Sea level air density fallback
+            }
             environmentState = state;
         }
 
