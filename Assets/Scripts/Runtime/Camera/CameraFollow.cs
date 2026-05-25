@@ -5,7 +5,7 @@ namespace MakerFlightRC.Runtime.CameraRig
     public class CameraFollow : MonoBehaviour
     {
         [SerializeField] private Transform target;
-        private const Vector3 RearOffset = new Vector3(0f, 3f, -10f);
+        private static readonly Vector3 RearOffset = new Vector3(0f, 3f, -10f);
 
         private void Start()
         {
