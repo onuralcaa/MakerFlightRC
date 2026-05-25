@@ -52,12 +52,13 @@ namespace MakerFlightRC.Runtime.Simulation
         private void EnsureRunway()
         {
             var runway = GameObject.Find(RunwayName);
-            if (runway == null)
+            if (runway != null)
             {
-                runway = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                runway.name = RunwayName;
+                return;
             }
 
+            runway = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            runway.name = RunwayName;
             runway.transform.position = Vector3.zero;
             runway.transform.rotation = Quaternion.identity;
             runway.transform.localScale = new Vector3(10f, 1f, 10f);
@@ -75,18 +76,19 @@ namespace MakerFlightRC.Runtime.Simulation
             var aircraft = GameObject.Find(AircraftName);
             if (aircraft == null)
             {
-                aircraft = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                aircraft.name = AircraftName;
+                aircraft = new GameObject(AircraftName);
             }
 
-            aircraft.transform.position = new Vector3(0f, 1f, 0f);
+            aircraft.transform.position = new Vector3(0f, 1.2f, 0f);
             aircraft.transform.rotation = Quaternion.identity;
             aircraft.transform.localScale = Vector3.one;
 
-            var capsuleCollider = aircraft.GetComponent<Collider>();
-            if (capsuleCollider != null)
+            foreach (var primitiveCollider in aircraft.GetComponents<Collider>())
             {
-                Destroy(capsuleCollider);
+                if (primitiveCollider is CapsuleCollider || primitiveCollider is SphereCollider)
+                {
+                    Destroy(primitiveCollider);
+                }
             }
 
             var boxCollider = aircraft.GetComponent<BoxCollider>();

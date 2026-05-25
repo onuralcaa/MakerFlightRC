@@ -15,6 +15,9 @@ namespace MakerFlightRC.EditorTools
         private const string DefaultAircraftPath = "Assets/Data/Default_Aircraft.asset";
         private const string InputChannelPath = "Assets/Channels/InputChannel.asset";
         private const string FlightDataChannelPath = "Assets/Channels/FlightDataChannel.asset";
+        private const string EnvironmentStateChannelPath = "Assets/Channels/EnvironmentStateChannel.asset";
+        private const string AircraftSelectionChannelPath = "Assets/Channels/AircraftSelectionChannel.asset";
+        private const string AircraftConfigChannelPath = "Assets/Channels/AircraftConfigChannel.asset";
 
         [MenuItem("MakerFlight RC/Aircraft Setup/Wire Selected Aircraft")]
         public static void WireSelectedAircraft()
@@ -81,6 +84,9 @@ namespace MakerFlightRC.EditorTools
             var defaultAircraft = AssetDatabase.LoadAssetAtPath<Data.AircraftData>(DefaultAircraftPath);
             var inputChannel = AssetDatabase.LoadAssetAtPath<Runtime.Channels.InputChannelSO>(InputChannelPath);
             var flightDataChannel = AssetDatabase.LoadAssetAtPath<Runtime.Channels.FlightDataChannelSO>(FlightDataChannelPath);
+            var environmentStateChannel = AssetDatabase.LoadAssetAtPath<Runtime.Channels.EnvironmentStateChannelSO>(EnvironmentStateChannelPath);
+            var aircraftSelectionChannel = AssetDatabase.LoadAssetAtPath<Runtime.Channels.AircraftSelectionChannelSO>(AircraftSelectionChannelPath);
+            var aircraftConfigChannel = AssetDatabase.LoadAssetAtPath<Runtime.Channels.AircraftConfigChannelSO>(AircraftConfigChannelPath);
 
             // Ensure Rigidbody exists
             var rb = aircraftGo.GetComponent<Rigidbody>();
@@ -107,9 +113,13 @@ namespace MakerFlightRC.EditorTools
 
             // Wire up all references
             SetFieldValue(inputProvider, "inputChannel", inputChannel);
+            SetFieldValue(controller, "aircraftSelectionChannel", aircraftSelectionChannel);
+            SetFieldValue(controller, "aircraftConfigChannel", aircraftConfigChannel);
+            SetFieldValue(controller, "environmentStateChannel", environmentStateChannel);
             SetFieldValue(controller, "defaultAircraft", defaultAircraft);
             SetFieldValue(controller, "inputChannel", inputChannel);
             SetFieldValue(controller, "flightDataChannel", flightDataChannel);
+            SetFieldValue(controller, "inputProvider", inputProvider);
 
             Debug.Log("Aircraft components wired successfully: " + aircraftGo.name);
         }
