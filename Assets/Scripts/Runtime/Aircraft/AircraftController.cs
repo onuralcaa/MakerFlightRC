@@ -13,12 +13,16 @@ namespace MakerFlightRC.Runtime.Aircraft
         [SerializeField] private AircraftSelectionChannelSO aircraftSelectionChannel;
         [SerializeField] private AircraftConfigChannelSO aircraftConfigChannel;
         [SerializeField] private EnvironmentStateChannelSO environmentStateChannel;
+        [SerializeField] private InputChannelSO inputChannel;
+        [SerializeField] private FlightDataChannelSO flightDataChannel;
         [SerializeField] private KeyboardInputProvider inputProvider;
+        [SerializeField] private AircraftData defaultAircraft;
 
         private Rigidbody rb;
         private AircraftData aircraftData;
         private AircraftConfigState configState;
         private EnvironmentState environmentState;
+        private InputState channelInputState;
 
         private void Awake()
         {
@@ -39,6 +43,15 @@ namespace MakerFlightRC.Runtime.Aircraft
             {
                 environmentStateChannel.OnRaised += HandleEnvironmentUpdated;
             }
+            if (inputChannel != null)
+            {
+                inputChannel.OnRaised += HandleInputUpdated;
+            }
+
+            if (aircraftData == null && defaultAircraft != null)
+            {
+                HandleAircraftSelected(defaultAircraft);
+            }
         }
 
         private void OnDisable()
@@ -55,16 +68,20 @@ namespace MakerFlightRC.Runtime.Aircraft
             {
                 environmentStateChannel.OnRaised -= HandleEnvironmentUpdated;
             }
+            if (inputChannel != null)
+            {
+                inputChannel.OnRaised -= HandleInputUpdated;
+            }
         }
 
         private void FixedUpdate()
         {
-            if (aircraftData == null || configState == null || inputProvider == null)
+            if (aircraftData == null || configState == null)
             {
                 return;
             }
 
-            var input = inputProvider.CurrentState;
+            var input = inputProvider != null ? inputProvider.CurrentState : channelInputState;
             var airVelocity = rb.velocity - environmentState.AirVelocity;
             var speed = airVelocity.magnitude;
             if (speed <= Mathf.Epsilon)
@@ -87,6 +104,8 @@ namespace MakerFlightRC.Runtime.Aircraft
                 input.yaw * aircraftData.controlTorque.y,
                 -input.roll * aircraftData.controlTorque.z);
             rb.AddRelativeTorque(torque);
+
+            PublishFlightData(speed);
         }
 
         private void HandleAircraftSelected(AircraftData data)
@@ -115,10 +134,43 @@ namespace MakerFlightRC.Runtime.Aircraft
             environmentState = state;
         }
 
+        private void HandleInputUpdated(InputState state)
+        {
+            channelInputState = state;
+        }
+
         private void ApplyConfigToRigidbody(AircraftConfigState state)
         {
             rb.mass = state.mass;
             rb.centerOfMass = state.centerOfMass;
+        }
+
+        private void PublishFlightData(float speed)
+        {
+            if (flightDataChannel == null)
+            {
+                return;
+            }
+
+            var euler = transform.eulerAngles;
+            var data = new FlightData
+            {
+                speed = speed,
+                altitude = transform.position.y,
+                pitch = NormalizeAngle(euler.x),
+                roll = NormalizeAngle(euler.z)
+            };
+
+            flightDataChannel.Raise(data);
+        }
+
+        private static float NormalizeAngle(float angle)
+        {
+            if (angle > 180f)
+            {
+                angle -= 360f;
+            }
+            return angle;
         }
     }
 }

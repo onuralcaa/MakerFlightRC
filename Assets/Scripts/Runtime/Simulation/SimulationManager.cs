@@ -11,9 +11,11 @@ namespace MakerFlightRC.Runtime.Simulation
 
         [SerializeField] private AircraftData defaultAircraft;
         [SerializeField] private EnvironmentData defaultEnvironment;
+        [SerializeField] private LevelData defaultLevel;
 
         private AircraftData currentAircraft;
         private EnvironmentData currentEnvironment;
+        private LevelData currentLevel;
 
         private void Start()
         {
@@ -25,6 +27,11 @@ namespace MakerFlightRC.Runtime.Simulation
             if (defaultEnvironment != null)
             {
                 SelectEnvironment(defaultEnvironment);
+            }
+
+            if (defaultLevel != null)
+            {
+                SelectLevel(defaultLevel);
             }
         }
 
@@ -54,6 +61,20 @@ namespace MakerFlightRC.Runtime.Simulation
         public EnvironmentData GetSelectedEnvironment()
         {
             return currentEnvironment;
+        }
+
+        public void SelectLevel(LevelData data)
+        {
+            currentLevel = data;
+            if (currentLevel != null)
+            {
+                Physics.gravity = new Vector3(0f, currentLevel.gravity, 0f);
+            }
+        }
+
+        public LevelData GetSelectedLevel()
+        {
+            return currentLevel;
         }
     }
 }

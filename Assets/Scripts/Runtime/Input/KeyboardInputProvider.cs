@@ -1,4 +1,5 @@
 using UnityEngine;
+using MakerFlightRC.Runtime.Channels;
 
 namespace MakerFlightRC.Runtime.Input
 {
@@ -6,6 +7,7 @@ namespace MakerFlightRC.Runtime.Input
     {
         [SerializeField] private float throttleChangeRate = 0.6f;
         [SerializeField] private float inputSmoothing = 8f;
+        [SerializeField] private InputChannelSO inputChannel;
 
         private InputState currentState;
         private InputState targetState;
@@ -34,6 +36,11 @@ namespace MakerFlightRC.Runtime.Input
             currentState.roll = Mathf.Lerp(currentState.roll, targetState.roll, t);
             currentState.pitch = Mathf.Lerp(currentState.pitch, targetState.pitch, t);
             currentState.yaw = Mathf.Lerp(currentState.yaw, targetState.yaw, t);
+
+            if (inputChannel != null)
+            {
+                inputChannel.Raise(currentState);
+            }
         }
 
         private static float GetAxis(KeyCode negative, KeyCode positive)

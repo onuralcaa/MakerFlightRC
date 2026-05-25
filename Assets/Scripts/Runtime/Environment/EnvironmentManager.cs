@@ -8,6 +8,7 @@ namespace MakerFlightRC.Runtime.Environment
     {
         [SerializeField] private EnvironmentSelectionChannelSO environmentSelectionChannel;
         [SerializeField] private EnvironmentStateChannelSO environmentStateChannel;
+        [SerializeField] private EnvironmentData defaultEnvironment;
 
         private EnvironmentData currentData;
 
@@ -16,6 +17,11 @@ namespace MakerFlightRC.Runtime.Environment
             if (environmentSelectionChannel != null)
             {
                 environmentSelectionChannel.OnRaised += HandleEnvironmentSelected;
+            }
+
+            if (currentData == null && defaultEnvironment != null)
+            {
+                currentData = defaultEnvironment;
             }
         }
 
