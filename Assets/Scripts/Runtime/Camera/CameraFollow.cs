@@ -13,24 +13,34 @@ namespace MakerFlightRC.Runtime.CameraRig
             {
                 transform.position = target.position + RearOffset;
             }
+            else
+            {
+                transform.position = RearOffset;
+            }
         }
 
         private void LateUpdate()
         {
-            if (target == null)
-            {
-                return;
-            }
+            // Get target position with safety checks
+            Vector3 targetPos = target != null ? target.position : Vector3.zero;
 
-            // Get target position, fallback to zero if NaN
-            Vector3 targetPos = target.position;
-            if (float.IsNaN(targetPos.x) || float.IsNaN(targetPos.y) || float.IsNaN(targetPos.z))
+            // Handle NaN or Infinity values
+            if (float.IsNaN(targetPos.x) || float.IsNaN(targetPos.y) || float.IsNaN(targetPos.z) ||
+                float.IsInfinity(targetPos.x) || float.IsInfinity(targetPos.y) || float.IsInfinity(targetPos.z))
             {
                 targetPos = Vector3.zero;
             }
 
-            transform.position = targetPos + RearOffset;
-            transform.LookAt(targetPos, Vector3.up);
+            // Calculate camera position from origin-based offset
+            Vector3 cameraPos = targetPos + RearOffset;
+
+            // Verify camera position is valid before applying
+            if (!float.IsNaN(cameraPos.x) && !float.IsNaN(cameraPos.y) && !float.IsNaN(cameraPos.z) &&
+                !float.IsInfinity(cameraPos.x) && !float.IsInfinity(cameraPos.y) && !float.IsInfinity(cameraPos.z))
+            {
+                transform.position = cameraPos;
+                transform.LookAt(targetPos, Vector3.up);
+            }
         }
     }
 }

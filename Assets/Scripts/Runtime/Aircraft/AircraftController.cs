@@ -97,37 +97,74 @@ namespace MakerFlightRC.Runtime.Aircraft
 
         private void FixedUpdate()
         {
+            // Safety boundary: reset if aircraft strays beyond 1000 units
+            if (transform.position.magnitude > 1000f)
+            {
+                transform.position = Vector3.zero;
+                if (rb != null)
+                {
+                    rb.velocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                }
+                return;
+            }
+
             if (aircraftData == null || configState == null)
             {
                 return;
             }
 
             // Ensure environment state is valid
-            if (environmentState.airDensity <= 0f)
+            if (environmentState.airDensity <= 0f || float.IsNaN(environmentState.airDensity) || float.IsInfinity(environmentState.airDensity))
             {
                 environmentState.airDensity = 1.225f;
             }
 
             var input = inputProvider != null ? inputProvider.CurrentState : channelInputState;
             var airVelocity = rb.velocity - environmentState.AirVelocity;
+
+            // Check for NaN/Infinity in airVelocity
+            if (float.IsNaN(airVelocity.x) || float.IsNaN(airVelocity.y) || float.IsNaN(airVelocity.z) ||
+                float.IsInfinity(airVelocity.x) || float.IsInfinity(airVelocity.y) || float.IsInfinity(airVelocity.z))
+            {
+                airVelocity = Vector3.zero;
+            }
+
             var speed = airVelocity.magnitude;
 
+            // Check for NaN/Infinity in speed
+            if (float.IsNaN(speed) || float.IsInfinity(speed))
+            {
+                speed = 0f;
+            }
+
+            // Apply thrust with safety checks
             var thrust = Mathf.Max(0f, configState.thrust) * Mathf.Clamp01(input.throttle);
-            rb.AddForce(transform.forward * thrust);
+            if (!float.IsNaN(thrust) && !float.IsInfinity(thrust) && thrust > 0f && thrust < 10000f)
+            {
+                rb.AddForce(transform.forward * thrust);
+            }
 
             if (speed > Mathf.Epsilon)
             {
-                var airDensity = environmentState.airDensity;
-                
-                // Apply aerodynamic forces safely
-                if (airDensity > 0f)
-                {
-                    var lift = 0.5f * airDensity * speed * speed * configState.wingArea * aircraftData.liftCoefficient;
-                    var drag = 0.5f * airDensity * speed * speed * configState.wingArea * aircraftData.dragCoefficient;
+                // Clamp parameters to reasonable ranges to prevent overflow
+                var airDensity = Mathf.Clamp(environmentState.airDensity, 0.1f, 10f);
+                var wingArea = Mathf.Clamp(configState.wingArea, 0.1f, 1000f);
+                var liftCoeff = Mathf.Clamp(aircraftData.liftCoefficient, -100f, 100f);
+                var dragCoeff = Mathf.Clamp(aircraftData.dragCoefficient, 0f, 100f);
 
+                var lift = 0.5f * airDensity * speed * speed * wingArea * liftCoeff;
+                var drag = 0.5f * airDensity * speed * speed * wingArea * dragCoeff;
+
+                // Check lift validity
+                if (!float.IsNaN(lift) && !float.IsInfinity(lift) && lift > -100000f && lift < 100000f)
+                {
                     rb.AddForce(transform.up * lift);
-                    
-                    // Safely normalize airVelocity to avoid NaN when dividing by zero
+                }
+
+                // Check drag validity and apply
+                if (!float.IsNaN(drag) && !float.IsInfinity(drag) && drag > -100000f && drag < 100000f)
+                {
                     Vector3 airVelocityNormalized = airVelocity.normalized;
                     if (!float.IsNaN(airVelocityNormalized.x) && !float.IsNaN(airVelocityNormalized.y) && !float.IsNaN(airVelocityNormalized.z))
                     {
@@ -136,11 +173,17 @@ namespace MakerFlightRC.Runtime.Aircraft
                 }
             }
 
+            // Apply torque with safety checks
             var torque = new Vector3(
                 input.pitch * aircraftData.controlTorque.x,
                 input.yaw * aircraftData.controlTorque.y,
                 -input.roll * aircraftData.controlTorque.z);
-            rb.AddRelativeTorque(torque);
+
+            if (!float.IsNaN(torque.x) && !float.IsNaN(torque.y) && !float.IsNaN(torque.z) &&
+                !float.IsInfinity(torque.x) && !float.IsInfinity(torque.y) && !float.IsInfinity(torque.z))
+            {
+                rb.AddRelativeTorque(torque);
+            }
 
             PublishFlightData(speed);
         }
