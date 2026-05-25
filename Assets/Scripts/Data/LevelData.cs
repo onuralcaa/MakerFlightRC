@@ -10,5 +10,6 @@ namespace MakerFlightRC.Data
         public string sceneName = "";
         public Vector3 spawnPosition = Vector3.zero;
         public Vector3 spawnEuler = Vector3.zero;
+        public float gravity = -9.81f;
     }
 }
