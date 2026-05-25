@@ -29,6 +29,16 @@ namespace MakerFlightRC.Runtime.Aircraft
             rb = GetComponent<Rigidbody>();
         }
 
+        private void Start()
+        {
+            if (rb != null)
+            {
+                rb.velocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                transform.position = Vector3.zero;
+            }
+        }
+
         private void OnEnable()
         {
             if (aircraftSelectionChannel != null)
