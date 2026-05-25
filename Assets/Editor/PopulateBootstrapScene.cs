@@ -106,6 +106,19 @@ namespace MakerFlightRC.EditorTools
             modelRoot.transform.localRotation = Quaternion.identity;
             modelRoot.transform.localScale = Vector3.one;
 
+            var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            body.name = "AircraftBody";
+            body.transform.SetParent(modelRoot.transform, false);
+            body.transform.localPosition = Vector3.zero;
+            body.transform.localRotation = Quaternion.identity;
+            body.transform.localScale = new Vector3(1.2f, 0.4f, 2f);
+
+            var bodyCollider = body.GetComponent<Collider>();
+            if (bodyCollider != null)
+            {
+                Object.DestroyImmediate(bodyCollider);
+            }
+
             return aircraftGo;
         }
 
