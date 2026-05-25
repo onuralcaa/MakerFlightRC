@@ -84,20 +84,19 @@ namespace MakerFlightRC.Runtime.Aircraft
             var input = inputProvider != null ? inputProvider.CurrentState : channelInputState;
             var airVelocity = rb.velocity - environmentState.AirVelocity;
             var speed = airVelocity.magnitude;
-            if (speed <= Mathf.Epsilon)
-            {
-                return;
-            }
-
-            var airDensity = environmentState.airDensity;
-            var lift = 0.5f * airDensity * speed * speed * configState.wingArea * aircraftData.liftCoefficient;
-            var drag = 0.5f * airDensity * speed * speed * configState.wingArea * aircraftData.dragCoefficient;
-
-            rb.AddForce(transform.up * lift);
-            rb.AddForce(-airVelocity.normalized * drag);
 
             var thrust = Mathf.Max(0f, configState.thrust) * Mathf.Clamp01(input.throttle);
             rb.AddForce(transform.forward * thrust);
+
+            if (speed > Mathf.Epsilon)
+            {
+                var airDensity = environmentState.airDensity;
+                var lift = 0.5f * airDensity * speed * speed * configState.wingArea * aircraftData.liftCoefficient;
+                var drag = 0.5f * airDensity * speed * speed * configState.wingArea * aircraftData.dragCoefficient;
+
+                rb.AddForce(transform.up * lift);
+                rb.AddForce(-airVelocity.normalized * drag);
+            }
 
             var torque = new Vector3(
                 input.pitch * aircraftData.controlTorque.x,
