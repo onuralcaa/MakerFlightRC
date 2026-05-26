@@ -45,9 +45,9 @@ namespace MakerFlightRC.Runtime.Aircraft
                 transform.position = Vector3.zero;
                 rb.useGravity = false;
                 rb.isKinematic = true;
-                rb.mass = 1.5f;
+                rb.mass = 2.0f;
                 rb.drag = 1.0f;
-                rb.angularDrag = 2.0f;
+                rb.angularDrag = 1.5f;
                 rb.maxAngularVelocity = 4f;
             }
 
@@ -134,6 +134,13 @@ namespace MakerFlightRC.Runtime.Aircraft
                 return;
             }
 
+            // Safety lock: prevent physics calculations if thrust is insufficient and speed is near zero
+            var currentThrust = Mathf.Max(0f, configState.thrust) * Mathf.Clamp01(input.throttle) * 0.4f;
+            if (currentThrust < 0.01f && rb.velocity.magnitude < 0.1f)
+            {
+                return;
+            }
+
             // Ensure environment state is valid
             if (environmentState.airDensity <= 0f || float.IsNaN(environmentState.airDensity) || float.IsInfinity(environmentState.airDensity))
             {
@@ -158,10 +165,10 @@ namespace MakerFlightRC.Runtime.Aircraft
             }
 
             // Apply thrust with safety checks (further scaled down for gentle acceleration)
-            var thrust = Mathf.Max(0f, configState.thrust) * Mathf.Clamp01(input.throttle) * 0.4f;
-            if (!float.IsNaN(thrust) && !float.IsInfinity(thrust) && thrust > 0f && thrust < 10000f)
+            // Reuse currentThrust calculated at FixedUpdate start for safety lock
+            if (!float.IsNaN(currentThrust) && !float.IsInfinity(currentThrust) && currentThrust > 0f && currentThrust < 10000f)
             {
-                rb.AddForce(transform.forward * thrust * Time.fixedDeltaTime, ForceMode.Force);
+                rb.AddForce(transform.forward * currentThrust * Time.fixedDeltaTime, ForceMode.Force);
             }
 
             if (speed > Mathf.Epsilon)
