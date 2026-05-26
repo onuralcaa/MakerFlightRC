@@ -356,7 +356,8 @@ namespace MakerFlightRC.EditorTools
             SetField(controller, "inputProvider", inputProvider);
             SetField(controller, "defaultAircraft", defaultAircraft);
 
-            AttachStandardAircraftVisual(aircraftGo.transform, boxCollider);
+            // Do NOT attach AircraftPropellerVisual; let SimulationManager provide primitive visuals
+            // AttachStandardAircraftVisual(aircraftGo.transform, boxCollider);
 
             return aircraftGo;
         }

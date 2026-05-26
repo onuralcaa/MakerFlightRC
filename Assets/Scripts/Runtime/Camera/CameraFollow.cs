@@ -36,8 +36,14 @@ namespace MakerFlightRC.Runtime.CameraRig
                 !float.IsInfinity(cameraPos.x) && !float.IsInfinity(cameraPos.y) && !float.IsInfinity(cameraPos.z))
             {
                 transform.position = cameraPos;
-                // Lock camera rotation to aircraft forward direction
-                transform.rotation = Quaternion.LookRotation(target.forward + new Vector3(0f, -0.1f, 0f));
+                // Compute forward direction with slight downward tilt, then normalize
+                Vector3 lookDir = target.forward;
+                lookDir += new Vector3(0f, -0.1f, 0f);
+                lookDir.Normalize();
+                if (!float.IsNaN(lookDir.x) && !float.IsNaN(lookDir.y) && !float.IsNaN(lookDir.z))
+                {
+                    transform.rotation = Quaternion.LookRotation(lookDir, Vector3.up);
+                }
             }
         }
     }
