@@ -366,14 +366,14 @@ namespace MakerFlightRC.EditorTools
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AircraftPrefabPath);
             if (prefab == null)
             {
-                Debug.LogError($"Aircraft prefab not found at {AircraftPrefabPath}");
+                Debug.LogWarning($"Aircraft prefab not found at {AircraftPrefabPath}. Skipping Standard Assets visual attachment. SimulationManager will provide primitive visuals.");
                 return;
             }
 
             var modelInstance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
             if (modelInstance == null)
             {
-                Debug.LogError("Failed to instantiate Standard Assets aircraft prefab.");
+                Debug.LogWarning("Failed to instantiate Standard Assets aircraft prefab. Skipping attachment.");
                 return;
             }
 
