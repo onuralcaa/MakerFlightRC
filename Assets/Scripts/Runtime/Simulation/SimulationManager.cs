@@ -117,6 +117,29 @@ namespace MakerFlightRC.Runtime.Simulation
                 aircraft = new GameObject(AircraftName);
             }
 
+            // Clean up old children and Missing script references
+            var propellerVisual = aircraft.transform.Find("AircraftPropellerVisual");
+            if (propellerVisual != null)
+            {
+                Destroy(propellerVisual.gameObject);
+            }
+
+            var modelRoot = aircraft.transform.Find("ModelRoot");
+            if (modelRoot != null)
+            {
+                Destroy(modelRoot.gameObject);
+            }
+
+            // Remove any missing MonoBehaviour components from aircraft itself
+            var components = aircraft.GetComponents<Component>();
+            foreach (var comp in components)
+            {
+                if (comp == null)
+                {
+                    DestroyImmediate(comp, true);
+                }
+            }
+
             aircraft.transform.position = new Vector3(0f, 0.5f, 0f);
             aircraft.transform.rotation = Quaternion.identity;
             aircraft.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
