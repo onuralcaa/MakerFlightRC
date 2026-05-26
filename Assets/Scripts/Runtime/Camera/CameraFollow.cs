@@ -6,20 +6,14 @@ namespace MakerFlightRC.Runtime.CameraRig
     {
         [SerializeField] private Transform target;
         private static readonly Vector3 RearOffset = new Vector3(0f, 3f, -10f);
+        private static readonly Vector3 LookOffset = new Vector3(0f, 0.5f, 0f);
 
         private void Start()
         {
             if (target != null)
             {
-                var targetPos = target.position;
-                if (float.IsNaN(targetPos.x) || float.IsNaN(targetPos.y) || float.IsNaN(targetPos.z) ||
-                    float.IsInfinity(targetPos.x) || float.IsInfinity(targetPos.y) || float.IsInfinity(targetPos.z))
-                {
-                    targetPos = Vector3.zero;
-                }
-
-                targetPos.y = 0f;
-                transform.position = targetPos + RearOffset;
+                transform.position = target.TransformPoint(RearOffset);
+                transform.LookAt(target.position + LookOffset, Vector3.up);
             }
             else
             {
@@ -29,27 +23,20 @@ namespace MakerFlightRC.Runtime.CameraRig
 
         private void LateUpdate()
         {
-            // Get target position with safety checks
-            Vector3 targetPos = target != null ? target.position : Vector3.zero;
-
-            // Handle NaN or Infinity values
-            if (float.IsNaN(targetPos.x) || float.IsNaN(targetPos.y) || float.IsNaN(targetPos.z) ||
-                float.IsInfinity(targetPos.x) || float.IsInfinity(targetPos.y) || float.IsInfinity(targetPos.z))
+            if (target == null)
             {
-                targetPos = Vector3.zero;
+                return;
             }
 
-            targetPos.y = 0f;
-
-            // Calculate camera position from origin-based offset
-            Vector3 cameraPos = targetPos + RearOffset;
+            // Use world-space offset (global position + offset)
+            Vector3 cameraPos = target.position + RearOffset;
 
             // Verify camera position is valid before applying
             if (!float.IsNaN(cameraPos.x) && !float.IsNaN(cameraPos.y) && !float.IsNaN(cameraPos.z) &&
                 !float.IsInfinity(cameraPos.x) && !float.IsInfinity(cameraPos.y) && !float.IsInfinity(cameraPos.z))
             {
                 transform.position = cameraPos;
-                transform.LookAt(targetPos, Vector3.up);
+                transform.LookAt(target.position + LookOffset, Vector3.up);
             }
         }
     }

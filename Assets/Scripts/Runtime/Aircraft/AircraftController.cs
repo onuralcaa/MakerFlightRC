@@ -27,6 +27,9 @@ namespace MakerFlightRC.Runtime.Aircraft
 
         private const float InputEpsilon = 0.01f;
         private const float DefaultAirDensity = 1.225f;
+        private const float ControlSpeedGate = 8f;
+        private const float AngularDamping = 1.5f;
+        private const float StabilityGain = 2.0f;
 
         private void Awake()
         {
@@ -42,8 +45,10 @@ namespace MakerFlightRC.Runtime.Aircraft
                 transform.position = Vector3.zero;
                 rb.useGravity = false;
                 rb.isKinematic = true;
-                rb.drag = 1.5f;
+                rb.mass = 1.5f;
+                rb.drag = 1.0f;
                 rb.angularDrag = 2.0f;
+                rb.maxAngularVelocity = 4f;
             }
 
             // Initialize safe default environment state
@@ -152,8 +157,8 @@ namespace MakerFlightRC.Runtime.Aircraft
                 speed = 0f;
             }
 
-            // Apply thrust with safety checks
-            var thrust = Mathf.Max(0f, configState.thrust) * Mathf.Clamp01(input.throttle);
+            // Apply thrust with safety checks (further scaled down for gentle acceleration)
+            var thrust = Mathf.Max(0f, configState.thrust) * Mathf.Clamp01(input.throttle) * 0.4f;
             if (!float.IsNaN(thrust) && !float.IsInfinity(thrust) && thrust > 0f && thrust < 10000f)
             {
                 rb.AddForce(transform.forward * thrust * Time.fixedDeltaTime, ForceMode.Force);
@@ -164,7 +169,7 @@ namespace MakerFlightRC.Runtime.Aircraft
                 // Clamp parameters to reasonable ranges to prevent overflow
                 var airDensity = Mathf.Clamp(environmentState.airDensity, 0.1f, 10f);
                 var wingArea = Mathf.Clamp(configState.wingArea, 0.1f, 1000f);
-                var liftCoeff = Mathf.Clamp(aircraftData.liftCoefficient, -100f, 100f);
+                var liftCoeff = Mathf.Clamp(aircraftData.liftCoefficient, -100f, 100f) * 0.2f;
                 var dragCoeff = Mathf.Clamp(aircraftData.dragCoefficient, 0f, 100f);
 
                 var lift = 0.5f * airDensity * speed * speed * wingArea * liftCoeff;
@@ -188,15 +193,29 @@ namespace MakerFlightRC.Runtime.Aircraft
             }
 
             // Apply torque with safety checks
+            var controlScale = Mathf.Clamp01(speed / ControlSpeedGate);
             var torque = new Vector3(
                 input.pitch * aircraftData.controlTorque.x,
                 input.yaw * aircraftData.controlTorque.y,
-                -input.roll * aircraftData.controlTorque.z);
+                -input.roll * aircraftData.controlTorque.z) * controlScale;
 
             if (!float.IsNaN(torque.x) && !float.IsNaN(torque.y) && !float.IsNaN(torque.z) &&
                 !float.IsInfinity(torque.x) && !float.IsInfinity(torque.y) && !float.IsInfinity(torque.z))
             {
                 rb.AddRelativeTorque(torque);
+            }
+
+            // Apply angular damping to reduce oscillations
+            if (!float.IsNaN(rb.angularVelocity.x) && !float.IsNaN(rb.angularVelocity.y) && !float.IsNaN(rb.angularVelocity.z))
+            {
+                rb.AddRelativeTorque(-rb.angularVelocity * AngularDamping, ForceMode.Acceleration);
+            }
+
+            // Gentle automatic stabilization: push aircraft upright over time
+            var uprightError = Vector3.Cross(transform.up, Vector3.up);
+            if (!float.IsNaN(uprightError.x) && !float.IsNaN(uprightError.y) && !float.IsNaN(uprightError.z))
+            {
+                rb.AddTorque(uprightError * StabilityGain, ForceMode.Acceleration);
             }
 
             PublishFlightData(speed);
