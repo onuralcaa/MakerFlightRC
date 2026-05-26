@@ -28,22 +28,16 @@ namespace MakerFlightRC.Runtime.CameraRig
                 return;
             }
 
-            // Use world-space offset (global position + offset)
-            Vector3 cameraPos = target.position + RearOffset;
+            // Camera follows aircraft from rear, tracking its position every frame
+            Vector3 cameraPos = target.TransformPoint(new Vector3(0f, 3f, -12f));
 
             // Verify camera position is valid before applying
             if (!float.IsNaN(cameraPos.x) && !float.IsNaN(cameraPos.y) && !float.IsNaN(cameraPos.z) &&
                 !float.IsInfinity(cameraPos.x) && !float.IsInfinity(cameraPos.y) && !float.IsInfinity(cameraPos.z))
             {
                 transform.position = cameraPos;
-                // Compute forward direction with slight downward tilt, then normalize
-                Vector3 lookDir = target.forward;
-                lookDir += new Vector3(0f, -0.1f, 0f);
-                lookDir.Normalize();
-                if (!float.IsNaN(lookDir.x) && !float.IsNaN(lookDir.y) && !float.IsNaN(lookDir.z))
-                {
-                    transform.rotation = Quaternion.LookRotation(lookDir, Vector3.up);
-                }
+                // Look at target aircraft
+                transform.LookAt(target.position);
             }
         }
     }

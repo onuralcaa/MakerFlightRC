@@ -46,7 +46,7 @@ namespace MakerFlightRC.Runtime.Aircraft
                 rb.useGravity = false;
                 rb.isKinematic = true;
                 rb.mass = 2.0f;
-                rb.drag = 1.0f;
+                rb.drag = 1.8f;
                 rb.angularDrag = 1.5f;
                 rb.maxAngularVelocity = 4f;
             }
@@ -157,9 +157,9 @@ namespace MakerFlightRC.Runtime.Aircraft
                 speed = 0f;
             }
 
-            // Apply thrust with safety checks (further scaled down for gentle acceleration)
-            // Reuse currentThrust calculated at FixedUpdate start for safety lock
-            var thrust = Mathf.Max(0f, configState.thrust) * Mathf.Clamp01(input.throttle) * 0.4f;
+            // Apply thrust with safety checks (limited to 15 N max, scaled down for gentle acceleration)
+            var thrustBase = Mathf.Min(Mathf.Max(0f, configState.thrust), 15f);
+            var thrust = thrustBase * Mathf.Clamp01(input.throttle) * 0.4f;
             if (!float.IsNaN(thrust) && !float.IsInfinity(thrust) && thrust > 0f && thrust < 10000f)
             {
                 rb.AddForce(transform.forward * thrust * Time.fixedDeltaTime, ForceMode.Force);

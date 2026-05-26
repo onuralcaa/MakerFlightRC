@@ -178,7 +178,7 @@ namespace MakerFlightRC.Runtime.Simulation
                 rb = aircraft.AddComponent<Rigidbody>();
             }
             rb.mass = 1.5f;
-            rb.drag = 1.0f;
+            rb.drag = 1.8f;
             rb.useGravity = true;
 
             if (aircraft.GetComponent<KeyboardInputProvider>() == null)
