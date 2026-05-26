@@ -27,6 +27,30 @@ namespace MakerFlightRC.Runtime.Simulation
 
         private void Awake()
         {
+            // Aggressively clean up any existing AircraftPropellerVisual or broken references
+            var propellerVisuals = FindObjectsOfType<Transform>();
+            foreach (var t in propellerVisuals)
+            {
+                if (t.name == "AircraftPropellerVisual")
+                {
+                    Destroy(t.gameObject);
+                }
+            }
+
+            // Clean up any orphaned GameObjects with missing scripts
+            var allObjects = FindObjectsOfType<GameObject>();
+            foreach (var go in allObjects)
+            {
+                var components = go.GetComponents<Component>();
+                foreach (var comp in components)
+                {
+                    if (comp == null)
+                    {
+                        DestroyImmediate(comp, true);
+                    }
+                }
+            }
+
             EnsureEnvironment();
             var aircraft = EnsureAircraft();
             WireCamera(aircraft);
@@ -117,17 +141,10 @@ namespace MakerFlightRC.Runtime.Simulation
                 aircraft = new GameObject(AircraftName);
             }
 
-            // Clean up old children and Missing script references
-            var propellerVisual = aircraft.transform.Find("AircraftPropellerVisual");
-            if (propellerVisual != null)
+            // Completely reset aircraft by removing all children and broken components
+            foreach (Transform child in aircraft.transform)
             {
-                Destroy(propellerVisual.gameObject);
-            }
-
-            var modelRoot = aircraft.transform.Find("ModelRoot");
-            if (modelRoot != null)
-            {
-                Destroy(modelRoot.gameObject);
+                Destroy(child.gameObject);
             }
 
             // Remove any missing MonoBehaviour components from aircraft itself
@@ -137,6 +154,11 @@ namespace MakerFlightRC.Runtime.Simulation
                 if (comp == null)
                 {
                     DestroyImmediate(comp, true);
+                }
+                // Also remove old components that might cause conflicts
+                if (comp is Renderer || comp is MeshFilter || comp is MeshCollider)
+                {
+                    Destroy(comp);
                 }
             }
 
@@ -192,7 +214,18 @@ namespace MakerFlightRC.Runtime.Simulation
                 controller = aircraft.AddComponent<AircraftController>();
             }
 
+            // Wire all channels and input provider to controller
+            var inputProvider = aircraft.GetComponent<KeyboardInputProvider>();
             SetPrivateField(controller, "defaultAircraft", defaultAircraft);
+            SetPrivateField(controller, "inputProvider", inputProvider);
+            SetPrivateField(controller, "aircraftSelectionChannel", aircraftSelectionChannel);
+            SetPrivateField(controller, "aircraftConfigChannel", aircraftConfigChannel);
+            SetPrivateField(controller, "environmentStateChannel", environmentStateChannel);
+            SetPrivateField(controller, "inputChannel", inputChannel);
+            SetPrivateField(controller, "flightDataChannel", flightDataChannel);
+
+            // Also wire input channel to keyboard provider
+            SetPrivateField(inputProvider, "inputChannel", inputChannel);
 
             BuildTrainerModel(aircraft.transform);
 
