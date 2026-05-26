@@ -12,6 +12,10 @@ namespace MakerFlightRC.Runtime.Simulation
     {
         [SerializeField] private AircraftSelectionChannelSO aircraftSelectionChannel;
         [SerializeField] private EnvironmentSelectionChannelSO environmentSelectionChannel;
+        [SerializeField] private AircraftConfigChannelSO aircraftConfigChannel;
+        [SerializeField] private EnvironmentStateChannelSO environmentStateChannel;
+        [SerializeField] private InputChannelSO inputChannel;
+        [SerializeField] private FlightDataChannelSO flightDataChannel;
 
         [SerializeField] private AircraftData defaultAircraft;
         [SerializeField] private EnvironmentData defaultEnvironment;
