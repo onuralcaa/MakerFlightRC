@@ -34,6 +34,21 @@ namespace MakerFlightRC.Runtime.Aircraft
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
+
+            // Clean up AircraftPropellerVisual and its missing script references
+            var propeller = transform.Find("AircraftPropellerVisual");
+            if (propeller != null)
+            {
+                var components = propeller.GetComponents<Component>();
+                foreach (var comp in components)
+                {
+                    if (comp == null || (comp is MonoBehaviour && comp.GetType().FullName == "Missing"))
+                    {
+                        DestroyImmediate(comp, true);
+                    }
+                }
+                Destroy(propeller.gameObject);
+            }
         }
 
         private void Start()
@@ -162,7 +177,7 @@ namespace MakerFlightRC.Runtime.Aircraft
             var thrust = thrustBase * Mathf.Clamp01(input.throttle) * 0.4f;
             if (!float.IsNaN(thrust) && !float.IsInfinity(thrust) && thrust > 0f && thrust < 10000f)
             {
-                rb.AddForce(transform.forward * thrust * Time.fixedDeltaTime, ForceMode.Force);
+                rb.AddForce(transform.forward * thrust, ForceMode.Acceleration);
             }
 
             if (speed > Mathf.Epsilon)
